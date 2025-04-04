@@ -1,0 +1,95 @@
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Django migrations
+*/migrations/
+!*/migrations/__init__.py
+
+# SQLite database
+*.sqlite3
+
+# PostgreSQL dump files
+*.sql
+
+# Secret environment variables
+.env
+*.env
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/
+.pyvenv/
+
+# VS Code settings
+.vscode/
+
+# PyCharm settings
+.idea/
+
+# Mac OS files
+.DS_Store
+
+# Windows system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Testing
+.coverage
+htmlcov/
+.tox/
+.nox/
+*.cover
+coverage.xml
+*.log
+
+# Build artifacts
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# pipenv / poetry
+Pipfile.lock
+poetry.lock
+
+# mypy
+.mypy_cache/
+
+# pytest
+.pytest_cache/
+
+# pyre
+.pyre/
+
+# celery
+celerybeat-schedule
+celerybeat.pid
+
+# Logs
+*.log
+
+# Static and media (generated)
+staticfiles/
+media/
+
+# CSV or data files (optional)
+*.csv
