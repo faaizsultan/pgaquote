@@ -109,11 +109,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 })
                 .then(data => {
                     if (data.price !== null && data.price !== undefined) {
-                        priceDisplay.innerHTML = `$${data.price.toFixed(2)}`;
-                        priceContainer.classList.remove("d-none");
-                    } else {
-                        throw new Error("Price not available");
-                    }
+                        const priceNumber = parseFloat(data.price);
+                        if (!isNaN(priceNumber)) { 
+                            priceDisplay.innerHTML = `$${priceNumber.toFixed(2)}`;
+                            priceContainer.classList.remove("d-none");
+                        } else {
+                            throw new Error("Invalid price format");
+                        }
+                    } 
                 })
                 .catch(error => {
                     console.error("Error fetching price:", error);
