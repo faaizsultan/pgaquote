@@ -1,0 +1,37 @@
+body {
+    overflow: hidden; 
+    height: 100vh; /* Full viewport height */
+    display: flex;
+    flex-direction: column;
+}
+.container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    height: calc(100vh - 40px); /* Subtract padding */
+}
+.form-container {
+    flex: 1;
+    overflow-y: auto; /* Make form content scrollable */
+    padding-right: 10px; /* Prevent content from touching scrollbar */
+}
+.form-section { 
+    padding: 20px; 
+    border-radius: 10px; 
+    margin-bottom: 15px; 
+}
+.product-section { background-color: #f8d7da; }
+.make-section { background-color: #d4edda; }
+.model-section { background-color: #cce5ff; }
+.shaft-section { background-color: #fff3cd; }
+.condition-section, .dexterity-section { background-color: #e2e3e5; }
+.price-section { 
+    background-color: #f0f8ff; 
+    padding: 20px; 
+    font-size: 1.5em; 
+    text-align: center; 
+    position: sticky;
+    bottom: 0;
+    margin-bottom: 0;
+}

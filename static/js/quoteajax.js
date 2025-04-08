@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const conditionContainer = document.getElementById("conditionContainer");
     const dexterityContainer = document.getElementById("dexterityContainer");
     const shaftContainer = document.getElementById("shaftContainer");
-
+    var isShaftsForModel = false;
     // Last 3 dropdowns that should reset to value="0"
     const lastThreeDropdowns = [conditionSelect, dexteritySelect, shaftSelect];
 
@@ -64,26 +64,50 @@ document.addEventListener("DOMContentLoaded", function () {
     function checkShaftAvailability(modelId) {
         fetch(`/get-shafts/?model=${modelId}`)
             .then(response => {
-                if (!response.ok) throw new Error("Network response was not ok");
+                console.log('Received response', response); // Debug log
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 return response.json();
             })
             .then(hasShafts => {
+                console.log('Parsed response data:', hasShafts); // Debug log
+                
+                // Ensure these elements exist
+                if (!shaftContainer || !shaftSelect || !conditionContainer) {
+                    throw new Error('Required DOM elements not found');
+                }
+    
                 if (hasShafts) {
                     shaftContainer.classList.remove("d-none");
+                    isShaftsForModel = true;
                 } else {
+                    isShaftsForModel = false;
                     shaftContainer.classList.add("d-none");
-                    shaftSelect.value = "0"; // Reset to default
+                    shaftSelect.value = "0";
                 }
-                // Show condition regardless of shaft availability
+                
                 conditionContainer.classList.remove("d-none");
+                console.log("Shaft availability updated", {
+                    hasShafts,
+                    isShaftsForModel,
+                    shaftSelectValue: shaftSelect.value
+                });
             })
             .catch(error => {
-                console.error("Error checking shaft availability:", error);
-                shaftContainer.classList.add("d-none");
-                conditionContainer.classList.remove("d-none");
+                console.error("Error in checkShaftAvailability:", error);
+                
+                // Safely handle DOM operations
+                try {
+                    if (shaftContainer) shaftContainer.classList.add("d-none");
+                    if (conditionContainer) conditionContainer.classList.remove("d-none");
+                    if (shaftSelect) shaftSelect.value = "0";
+                    isShaftsForModel = false;
+                } catch (domError) {
+                    console.error("DOM manipulation error:", domError);
+                }
             });
     }
-
     // Fetch price based on all selected options
     function fetchPrice() {
         const productType = productTypeSelect.value;
@@ -93,11 +117,20 @@ document.addEventListener("DOMContentLoaded", function () {
         const dexterity = dexteritySelect.value;
         const shaft = shaftSelect.value;
 
-        // Don't fetch price if any dropdown is in default state (value="0")
-        if (condition === "0" || dexterity === "0" || shaft === "0") {
-            priceContainer.classList.add("d-none");
-            return;
+        // If Shafts Exist for this Model.
+        if (isShaftsForModel){
+            if (condition === "0" || dexterity === "0" || shaft === "0") {
+                priceContainer.classList.add("d-none");
+                return;
+            }
         }
+        else{
+            if (condition === "0" || dexterity === "0") {
+                priceContainer.classList.add("d-none");
+                return;
+            }
+        }
+        // Don't fetch price if any dropdown is in default state (value="0")
 
         if (productType && make && model && condition && dexterity) {
             const url = `/get-price/?product_type=${productType}&make=${make}&model=${model}&condition=${condition}&dexterity=${dexterity}&shaft=${shaft}`;
@@ -195,8 +228,10 @@ document.addEventListener("DOMContentLoaded", function () {
     dexteritySelect.addEventListener("change", function() {
         handleDropdownChange(this);
         if (this.value && this.value !== "0") {
-            shaftContainer.classList.remove("d-none");
-        }
+            if (isShaftsForModel){
+                shaftContainer.classList.remove("d-none");
+            }
+        } 
     });
 
     // Price should be fetched when any of these change (but not when value="0")

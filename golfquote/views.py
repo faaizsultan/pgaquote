@@ -58,14 +58,25 @@ def get_price(request):
     if any(param not in request.GET for param in required_params):
         return JsonResponse({'error': 'Missing parameters'}, status=400)
 
-    price = Price.objects.filter(
-        product_type_id=request.GET['product_type'],
-        make_id=request.GET['make'],
-        model_id=request.GET['model'],
-        shaft_id=request.GET['shaft'],
-        condition_id=request.GET['condition'],
-        dexterity_id=request.GET['dexterity']
-    ).first()
+    # Check if this model has any shafts associated in the Price table
+
+    if 'shaft' in request.GET and request.GET['shaft'] != '0':
+        price = Price.objects.filter(
+            product_type_id=request.GET['product_type'],
+            make_id=request.GET['make'],
+            model_id=request.GET['model'],
+            shaft_id=request.GET['shaft'],
+            condition_id=request.GET['condition'],
+            dexterity_id=request.GET['dexterity']
+        ).first()
+    else:
+        price = Price.objects.filter(
+            product_type_id=request.GET['product_type'],
+            make_id=request.GET['make'],
+            model_id=request.GET['model'],
+            condition_id=request.GET['condition'],
+            dexterity_id=request.GET['dexterity']
+        ).first()
 
     if price:
         return JsonResponse({'price': price.value})

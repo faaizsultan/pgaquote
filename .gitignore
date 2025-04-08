@@ -7,9 +7,9 @@ __pycache__/
 # C extensions
 *.so
 
-# Django migrations
-*/migrations/
-!*/migrations/__init__.py
+# # Django migrations
+# */migrations/
+# !*/migrations/__init__.py
 
 # SQLite database
 *.sqlite3

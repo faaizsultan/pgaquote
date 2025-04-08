@@ -73,6 +73,7 @@ class Command(BaseCommand):
                         )
                         
                         success_count += 1
+                        print(success_count)
 
                 except KeyError as e:
                     self.stdout.write(self.style.ERROR(
