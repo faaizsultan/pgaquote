@@ -1,18 +1,52 @@
 import csv
 from django.core.management.base import BaseCommand
 from django.db import transaction
+from decimal import Decimal
 from golfquote.models import (
     ProductType, Make, Model, 
-    Shaft, Condition, Dexterity, Price
+    Shaft, Condition, Dexterity, Price,MakeUp
 )
 
 class Command(BaseCommand):
-    help = 'Import prices from CSV file'
+    help = 'Import prices from CSV file with optional ShaftType and MakeUp columns'
+
+    def initialize_choice_models(self):
+        """Create initial instances for all choice-based models"""
+        with transaction.atomic():
+            # Initialize Condition
+            Condition.objects.get_or_create(id=1, name='Good')
+            Condition.objects.get_or_create(id=2, name='New')
+            Condition.objects.get_or_create(id=3, name='Poor')
+
+            # Initialize Dexterity
+            Dexterity.objects.get_or_create(id=1, name='Left')
+            Dexterity.objects.get_or_create(id=2, name='Right')
+
+            # Initialize Shaft
+            Shaft.objects.get_or_create(id=1, name='Graphite')
+            Shaft.objects.get_or_create(id=2, name='Steel')
+
+            # Initialize MakeUp
+            makeup_choices = [
+                ('11', '11 Irons All Types'),
+                ('10', '10 Irons All Types'),
+                ('9', '9 Irons All Types'),
+                ('8', '8 Irons All Types'),
+                ('7', '7 Irons All Types'),
+                ('6', '6 Irons All Types'),
+                ('5', '5 Irons All Types'),
+            ]
+            for value, name in makeup_choices:
+                MakeUp.objects.get_or_create(name=value)
 
     def add_arguments(self, parser):
         parser.add_argument('csv_file', type=str, help='Path to the CSV file')
 
     def handle(self, *args, **options):
+
+        # First ensure all choice-based models have their instances
+        self.initialize_choice_models()
+
         csv_file_path = options['csv_file']
         
         # Mapping dictionaries
@@ -60,18 +94,30 @@ class Command(BaseCommand):
                         if row['ShaftType']:
                             shaft_id = shaft_map.get(row['ShaftType'])
                             shaft = Shaft.objects.get(id=shaft_id)
+                        
+                                                # Get MakeUp if exists and is not empty
+                        makeup = None
+                        if row.get('MakeUp', '').strip():
+                            try:
+                                makeup = MakeUp.objects.get(name=row['MakeUp'].strip())
+                                print("Makeup Got From Db",makeup)
+                            except MakeUp.DoesNotExist:
+                                raise ValueError(f"Invalid makeup value: {row['MakeUp']}")
 
                         # Create Price entry
-                        Price.objects.create(
+                        price = Price.objects.create(
                             product_type=product_type,
                             make=make,
                             model=model,
                             shaft=shaft,
                             condition=condition,
-                            dexterity=dexterity,
-                            value=row['Price']
+                            dexterity=dexterity, 
+                            makeups=makeup,
+                            value=Decimal(row['Price'].strip())
                         )
                         
+                            
+
                         success_count += 1
                         print(success_count)
 

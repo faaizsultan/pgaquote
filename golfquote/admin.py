@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import ProductType, Make, Model, Shaft, Condition, Dexterity, Price
+from .models import ProductType, Make, Model, Shaft,MakeUp, Condition, Dexterity, Price
 
 @admin.register(ProductType)
 class ProductTypeAdmin(admin.ModelAdmin):
@@ -17,6 +17,10 @@ class ModelAdmin(admin.ModelAdmin):
 class ShaftAdmin(admin.ModelAdmin):
     list_display = ('name',)
 
+@admin.register(MakeUp)
+class MaekupAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+
 @admin.register(Condition)
 class ConditionAdmin(admin.ModelAdmin):
     list_display = ('name',)
@@ -27,4 +31,4 @@ class DexterityAdmin(admin.ModelAdmin):
 
 @admin.register(Price)
 class PriceAdmin(admin.ModelAdmin):
-    list_display = ('product_type', 'make', 'model', 'shaft', 'condition', 'dexterity', 'value')
+    list_display = ('product_type', 'make', 'model', 'shaft','makeups' ,'condition', 'dexterity', 'value')
