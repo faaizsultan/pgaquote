@@ -1,8 +1,35 @@
 document.addEventListener("DOMContentLoaded", function () {
     // DOM Elements
-    const productTypeSelect = document.getElementById("productType");
-    const makeSelect = document.getElementById("make");
-    const modelSelect = document.getElementById("model");
+
+    const productTypeTom = new TomSelect('#productType', {
+        create: false,
+        searchField: 'text',
+        placeholder: '-- Select Product Type --',
+        onInitialize: function() {
+            this.setTextboxValue('');
+        }
+    });
+
+    const makeTom = new TomSelect('#make', {
+        create: false,
+        searchField: 'text',
+        placeholder: '-- Select Make --',
+        onInitialize: function() {
+            this.setTextboxValue('');
+        }
+    });
+
+    const modelTom = new TomSelect('#model', {
+        create: false,
+        searchField: 'text',
+        placeholder: '-- Select Model --',
+        onInitialize: function() {
+            this.setTextboxValue('');
+        }
+    });
+    // const productTypeSelect = document.getElementById("productType");
+    // const makeSelect = document.getElementById("make");
+    // const modelSelect = document.getElementById("model");
     const conditionSelect = document.getElementById("condition");
     const dexteritySelect = document.getElementById("dexterity");
     const shaftSelect = document.getElementById("shaft");
@@ -24,11 +51,31 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Reset a dropdown (with different behavior for top vs bottom groups)
     function resetDropdown(selectElement, container, shouldResetValues, placeholder = "") {
-        if (shouldResetValues) {
-            selectElement.innerHTML = `<option value="">${placeholder}</option>`;
+        const tomInstance = getTomInstance(selectElement.id);
+        if (tomInstance) {
+            tomInstance.clear();
+            if (shouldResetValues) {
+                tomInstance.clearOptions();
+                tomInstance.addOption({value: "", text: placeholder});
+            }
+        } else {
+            if (shouldResetValues) {
+                selectElement.innerHTML = `<option value="">${placeholder}</option>`;
+            }
         }
         container.classList.add("d-none");
     }
+    
+    // Helper function to get Tom Select instance
+    function getTomInstance(id) {
+        switch(id) {
+            case 'productType': return productTypeTom;
+            case 'make': return makeTom;
+            case 'model': return modelTom;
+            default: return null;
+        }
+    }
+    
 
     // Reset last 4 dropdowns to their default (value="0") options
     function resetLastFourDropdowns() {
@@ -46,25 +93,36 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Fetch options for a dropdown via AJAX
     function fetchOptions(url, selectElement, container, placeholder) {
+        const tomInstance = getTomInstance(selectElement.id);
+         
         fetch(url)
             .then(response => {
                 if (!response.ok) throw new Error("Network response was not ok");
                 return response.json();
             })
             .then(data => {
-                selectElement.innerHTML = `<option value="">${placeholder}</option>`;
-                data.forEach(item => {
-                    const option = document.createElement("option");
-                    option.value = item.id;
-                    option.textContent = item.name;
-                    selectElement.appendChild(option);
-                });
+                resetDropdown(selectElement, container, placeholder);
+                
+                if (tomInstance) {
+                    tomInstance.addOptions(data.map(item => ({
+                        value: item.id,
+                        text: item.name
+                    })));
+                } else {
+                    selectElement.innerHTML = `<option value="">${placeholder}</option>`;
+                    data.forEach(item => {
+                        const option = document.createElement("option");
+                        option.value = item.id;
+                        option.textContent = item.name;
+                        selectElement.appendChild(option);
+                    });
+                }
+                
                 container.classList.remove("d-none");
             })
             .catch(error => {
                 console.error("Error fetching data:", error);
-                selectElement.innerHTML = `<option value="">${placeholder}</option>`;
-                container.classList.add("d-none");
+                resetDropdown(selectElement, container, placeholder);
             });
     }
 
@@ -72,14 +130,12 @@ document.addEventListener("DOMContentLoaded", function () {
         // First fetch shaft availability
         fetch(`/get-shafts/?model=${modelId}`)
             .then(response => {
-                console.log('Shaft response received', response);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 return response.json();
             })
             .then(hasShafts => {
-                console.log('Shaft data:', hasShafts);
                 
                 // Handle shaft container
                 if (shaftContainer) {
@@ -102,14 +158,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 return fetch(`/get-makeups/?model=${modelId}`);
             })
             .then(response => {
-                console.log('Makeup response received', response);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 return response.json();
             })
             .then(hasMakeups => {
-                console.log('Makeup data:', hasMakeups);
+
                 
                 // Handle makeup container
                 if (makeupContainer) {
@@ -141,11 +196,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     // Fetch price based on all selected options
     function fetchPrice() {
-        const productType = productTypeSelect.value;
-        const make = makeSelect.value;
-        const model = modelSelect.value;
+    // Get values from Tom Select instances
+        const productType = productTypeTom.getValue();
+        const make = makeTom.getValue();
+        const model = modelTom.getValue();
         const condition = conditionSelect.value;
-        const dexterity = dexteritySelect.value;
+        const dexterity = dexteritySelect.value; 
         const shaft = shaftSelect.value;
         const makeup = makeupSelect.value;
 
@@ -200,22 +256,50 @@ document.addEventListener("DOMContentLoaded", function () {
     // Reset dropdowns based on changed dropdown
     function handleDropdownChange(changedSelect) {
         const dropdownHierarchy = [
-            { select: productTypeSelect, container: makeContainer, resetValues: true },
-            { select: makeSelect, container: modelContainer, resetValues: true },
-            { select: modelSelect, container: conditionContainer, resetValues: false },
-            { select: conditionSelect, container: dexterityContainer, resetValues: false },
-            { select: dexteritySelect, container: shaftContainer, resetValues: false }
+            { 
+                select: productTypeTom, 
+                selectElement: document.getElementById('productType'),
+                container: makeContainer, 
+                resetValues: true 
+            },
+            { 
+                select: makeTom, 
+                selectElement: document.getElementById('make'),
+                container: modelContainer, 
+                resetValues: true 
+            },
+            { 
+                select: modelTom, 
+                selectElement: document.getElementById('model'),
+                container: conditionContainer, 
+                resetValues: false 
+            },
+            { 
+                select: conditionSelect, 
+                selectElement: conditionSelect,
+                container: dexterityContainer, 
+                resetValues: false 
+            },
+            { 
+                select: dexteritySelect, 
+                selectElement: dexteritySelect,
+                container: shaftContainer, 
+                resetValues: false 
+            }
         ];
-
-        const changedIndex = dropdownHierarchy.findIndex(item => item.select === changedSelect);
-        console.log('Changed Index',changedIndex);
+    
+        const changedIndex = dropdownHierarchy.findIndex(item => 
+            item.select === changedSelect || item.selectElement === changedSelect
+        );
+        
         // Reset all subsequent dropdowns
         for (let i = changedIndex + 1; i < dropdownHierarchy.length; i++) {
-            const { select, container, resetValues } = dropdownHierarchy[i];
-            resetDropdown(select, container, resetValues, `-- Select ${select.id.replace('Select', '')} --`);
+            const { select, selectElement, container, resetValues } = dropdownHierarchy[i];
+            const dropdownName = selectElement.id.replace('Select', '').replace(/([A-Z])/g, ' $1').trim();
+            resetDropdown(selectElement, container, resetValues, `-- Select ${dropdownName} --`);
         }
         
-        // If any of the top dropdowns change (ProductType, Make, or Model), reset last 3 to value="0"
+        // If any of the top dropdowns change (ProductType, Make, or Model), reset last 4 dropdowns to value="0"
         if (changedIndex < 3) { // 0=ProductType, 1=Make, 2=Model
             resetLastFourDropdowns();
         }
@@ -225,36 +309,70 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // Event Listeners
-    productTypeSelect.addEventListener("change", function() {
-        handleDropdownChange(this);
-        if (this.value) {
+    productTypeTom.on('change', function(value) {
+        handleDropdownChange(this); // Pass the Tom Select instance
+        if (value) {
             fetchOptions(
-                `/get-makes/?product_type=${this.value}`,
-                makeSelect,
+                `/get-makes/?product_type=${value}`,
+                document.getElementById('make'),
                 makeContainer,
                 "-- Select Make --"
             );
         }
     });
-
-    makeSelect.addEventListener("change", function() {
-        handleDropdownChange(this);
-        if (this.value) {
+    
+    // Make change
+    makeTom.on('change', function(value) {
+        handleDropdownChange(this); // Pass the Tom Select instance
+        if (value) {
             fetchOptions(
-                `/get-models/?make=${this.value}`,
-                modelSelect,
+                `/get-models/?make=${value}`,
+                document.getElementById('model'),
                 modelContainer,
                 "-- Select Model --"
             );
         }
     });
-
-    modelSelect.addEventListener("change", function() {
-        handleDropdownChange(this);
-        if (this.value) {
-            checkShaftAvailability(this.value);
+    
+    // Model change
+    modelTom.on('change', function(value) {
+        handleDropdownChange(this); // Pass the Tom Select instance
+        if (value) {
+            checkShaftAvailability(value);
         }
     });
+
+
+    // productTypeSelect.addEventListener("change", function() {
+    //     handleDropdownChange(this);
+    //     if (this.value) {
+    //         fetchOptions(
+    //             `/get-makes/?product_type=${this.value}`,
+    //             makeSelect,
+    //             makeContainer,
+    //             "-- Select Make --"
+    //         );
+    //     }
+    // });
+
+    // makeSelect.addEventListener("change", function() {
+    //     handleDropdownChange(this);
+    //     if (this.value) {
+    //         fetchOptions(
+    //             `/get-models/?make=${this.value}`,
+    //             modelSelect,
+    //             modelContainer,
+    //             "-- Select Model --"
+    //         );
+    //     }
+    // });
+
+    // modelSelect.addEventListener("change", function() {
+    //     handleDropdownChange(this);
+    //     if (this.value) {
+    //         checkShaftAvailability(this.value);
+    //     }
+    // });
 
     conditionSelect.addEventListener("change", function() {
         handleDropdownChange(this);

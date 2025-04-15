@@ -36,3 +36,18 @@ body {
     bottom: 0;
     margin-bottom: 0;
 }
+/* Tom Select CSS */
+.ts-control {
+    background-color: #fff !important;
+    border: 1px solid #ced4da !important;
+    border-radius: 0.375rem !important;
+}
+
+.ts-dropdown {
+    z-index: 1060 !important; /* Ensure dropdown appears above other elements */
+}
+
+/* Hide original select elements */
+#productType, #make, #model {
+    display: none;
+}
